@@ -15,7 +15,7 @@ public class Url {
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     private Long id;
 
-    @Column(name = "shortened_url", unique = true, nullable = false)
+    @Column(name = "shortened_url", unique = true)
     private String shortUrl;
 
     @Column(name = "original_url", unique = true, nullable = false)
@@ -32,9 +32,8 @@ public class Url {
         createdAt = LocalDateTime.now();
     }
 
-    public Url(String originalUrl, String shortUrl){
+    public Url(String originalUrl){
         this.originalUrl = originalUrl;
-        this.shortUrl = shortUrl;
         this.createdAt = LocalDateTime.now();
         this.clickCount = 0L;
     }
