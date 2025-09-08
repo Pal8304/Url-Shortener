@@ -1,14 +1,18 @@
 package com.example.urlshortener.controller;
 
+import com.example.urlshortener.entity.ShortenRequest;
+import com.example.urlshortener.entity.ShortenResponse;
 import com.example.urlshortener.service.UrlShortenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
 @Slf4j
 @RestController
+@RequestMapping("/api")
 public class UrlShortenController {
     private final UrlShortenService urlShortenService;
 
@@ -18,8 +22,8 @@ public class UrlShortenController {
     }
 
     @PostMapping("/")
-    public String saveShortenedUrl(@RequestBody String originalUrl){
-        log.info("Original String {}", originalUrl);
-        return urlShortenService.saveUrl(originalUrl);
+    public ShortenResponse saveShortenedUrl(@RequestBody ShortenRequest shortenRequest){
+        log.info("Original String {}", shortenRequest.getOriginalUrl());
+        return urlShortenService.saveUrl(shortenRequest.getOriginalUrl());
     }
 }

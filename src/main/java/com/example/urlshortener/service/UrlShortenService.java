@@ -1,5 +1,6 @@
 package com.example.urlshortener.service;
 
+import com.example.urlshortener.entity.ShortenResponse;
 import com.example.urlshortener.entity.Url;
 import com.example.urlshortener.repository.UrlRepository;
 import lombok.extern.slf4j.Slf4j;
@@ -16,19 +17,41 @@ public class UrlShortenService {
         this.urlRepository = urlRepository;
     }
 
-    /*
-    ToDo: 1. Do we need to send url in request body or request params is fine ( so basically do I need to create a separate POJO )
-          2. Figure out we'll redirect when a session is active
-          3. How are we generating shortened URL, current idea: id in base 65 + salting
-     */
+    public ShortenResponse saveUrl(String originalUrl) {
+        Url url = new Url(originalUrl);
+        url = urlRepository.save(url);
 
-    public String saveUrl(String originalUrl) {
-        String shortUrl = shortenOriginalUrl(originalUrl);
-        Url savedUrl = urlRepository.save(new Url(originalUrl, shortUrl));
-        return savedUrl.getShortUrl();
+        Long urlId = url.getId();
+        String shortenedUrl = generateShortenUrl(urlId);
+
+        log.info("Shortened Url {} for Original Url {}", shortenedUrl, originalUrl);
+
+        url.setShortUrl(shortenedUrl);
+        urlRepository.save(url);
+
+        return new ShortenResponse(shortenedUrl, originalUrl);
     }
 
-    private String shortenOriginalUrl(String originalUrl) {
-        return originalUrl;
+    private String generateShortenUrl(Long urlId) {
+        return convertToBase62(urlId);
+    }
+
+    private String convertToBase62(Long urlId) {
+        final String BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+        StringBuilder base62 = new StringBuilder();
+        Long value = urlId;
+        while (value > 0) {
+            base62.append(BASE62_CHARS.charAt((int) (value % 62)));
+            value /= 62;
+        }
+
+        while (base62.length() < 7) {
+            base62.append(BASE62_CHARS.charAt(0));
+        }
+
+        log.info("For id {}, base62 is {}", urlId, base62);
+
+        return base62.reverse().toString();
     }
 }
