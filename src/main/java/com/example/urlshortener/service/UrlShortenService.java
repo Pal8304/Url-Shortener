@@ -7,6 +7,8 @@ import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 
+import java.util.Optional;
+
 @Service
 @Slf4j
 public class UrlShortenService {
@@ -30,6 +32,17 @@ public class UrlShortenService {
         urlRepository.save(url);
 
         return new ShortenResponse(shortenedUrl, originalUrl);
+    }
+
+    public String fetchOriginalString(String shortenUrl) {
+        Optional<Url> optionalUrl = urlRepository.findByShortUrl(shortenUrl);
+
+        if (optionalUrl.isPresent()) {
+            Url url = optionalUrl.get();
+            return url.getOriginalUrl();
+        } else {
+            return null;
+        }
     }
 
     private String generateShortenUrl(Long urlId) {
