@@ -2,7 +2,10 @@ package com.example.urlshortener.service;
 
 import com.example.urlshortener.entity.ShortenResponse;
 import com.example.urlshortener.entity.Url;
+import com.example.urlshortener.exception.InvalidUrlException;
+import com.example.urlshortener.exception.UrlShortenerException;
 import com.example.urlshortener.repository.UrlRepository;
+import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
@@ -20,29 +23,39 @@ public class UrlShortenService {
     }
 
     public ShortenResponse saveUrl(String originalUrl) {
-        Url url = new Url(originalUrl);
-        url = urlRepository.save(url);
 
-        Long urlId = url.getId();
-        String shortenedUrl = generateShortenUrl(urlId);
+        if(originalUrl.isBlank()){
+            throw new InvalidUrlException("URL shouldn't be empty");
+        }
 
-        log.info("Shortened Url {} for Original Url {}", shortenedUrl, originalUrl);
+        try {
+            Url url = new Url(originalUrl);
+            url = urlRepository.save(url);
 
-        url.setShortUrl(shortenedUrl);
-        urlRepository.save(url);
+            Long urlId = url.getId();
+            String shortenedUrl = generateShortenUrl(urlId);
 
-        return new ShortenResponse(shortenedUrl, originalUrl);
+            log.info("Shortened Url {} for Original Url {}", shortenedUrl, originalUrl);
+
+            url.setShortUrl(shortenedUrl);
+            urlRepository.save(url);
+
+            return new ShortenResponse(shortenedUrl, originalUrl);
+        } catch (ConstraintViolationException e) {
+            throw new InvalidUrlException("Provided Url is invalid");
+        }
     }
 
-    public String fetchOriginalString(String shortenUrl) {
+    public String fetchOriginalString(String shortenUrl) throws UrlShortenerException {
         Optional<Url> optionalUrl = urlRepository.findByShortUrl(shortenUrl);
-
-        if (optionalUrl.isPresent()) {
-            Url url = optionalUrl.get();
-            return url.getOriginalUrl();
-        } else {
-            return null;
+        if (optionalUrl.isPresent() && !optionalUrl.get().getOriginalUrl().isBlank()) {
+            return optionalUrl.get().getOriginalUrl();
         }
+        throw new UrlShortenerException("No valid URL not found, please verify the link.");
+    }
+
+    private void incrementUrlCounter(String shortenUrl) {
+        // ToDo: Complete this function
     }
 
     private String generateShortenUrl(Long urlId) {

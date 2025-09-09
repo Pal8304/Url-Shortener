@@ -2,6 +2,8 @@ package com.example.urlshortener.controller;
 
 import com.example.urlshortener.entity.ShortenRequest;
 import com.example.urlshortener.entity.ShortenResponse;
+import com.example.urlshortener.exception.InvalidUrlException;
+import com.example.urlshortener.exception.UrlShortenerException;
 import com.example.urlshortener.service.UrlShortenService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
@@ -19,20 +21,16 @@ public class UrlShortenController {
         this.urlShortenService = urlShortenService;
     }
 
-    @GetMapping("/{shortenUrl}")
-    public RedirectView redirectToOriginalUrl(@PathVariable String shortenUrl) {
-        String originalUrl = urlShortenService.fetchOriginalString(shortenUrl);
-        log.info("Original Url {} from Shorten Url {}", originalUrl, shortenUrl);
+    @GetMapping("/{shortenedUrl}")
+    public RedirectView redirectToOriginalUrl(@PathVariable String shortenedUrl) throws UrlShortenerException {
+        String originalUrl = urlShortenService.fetchOriginalString(shortenedUrl);
+        log.info("Original Url {} from Shorten Url {}", originalUrl, shortenedUrl);
 
-        if (originalUrl != null) {
-            return new RedirectView(originalUrl);
-        }
-
-        return new RedirectView("/404");
+        return new RedirectView(originalUrl);
     }
 
     @PostMapping("/")
-    public ShortenResponse saveShortenedUrl(@RequestBody ShortenRequest shortenRequest) {
+    public ShortenResponse saveShortenedUrl(@RequestBody ShortenRequest shortenRequest) throws InvalidUrlException {
         log.info("Original String {}", shortenRequest.getOriginalUrl());
         return urlShortenService.saveUrl(shortenRequest.getOriginalUrl());
     }

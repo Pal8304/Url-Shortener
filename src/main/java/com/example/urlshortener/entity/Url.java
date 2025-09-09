@@ -2,6 +2,7 @@ package com.example.urlshortener.entity;
 
 import jakarta.persistence.*;
 import lombok.*;
+import org.hibernate.validator.constraints.URL;
 
 import java.time.LocalDateTime;
 
@@ -18,6 +19,7 @@ public class Url {
     @Column(name = "shortened_url", unique = true)
     private String shortUrl;
 
+    @URL(message = "Please provide a valid URL")
     @Column(name = "original_url", unique = true, nullable = false)
     private String originalUrl;
 
