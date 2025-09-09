@@ -46,16 +46,20 @@ public class UrlShortenService {
         }
     }
 
-    public String fetchOriginalString(String shortenUrl) throws UrlShortenerException {
+    public String fetchOriginalUrl(String shortenUrl) throws UrlShortenerException {
         Optional<Url> optionalUrl = urlRepository.findByShortUrl(shortenUrl);
         if (optionalUrl.isPresent() && !optionalUrl.get().getOriginalUrl().isBlank()) {
-            return optionalUrl.get().getOriginalUrl();
+            Url url = optionalUrl.get();
+            incrementUrlCounter(url);
+            urlRepository.save(url);
+
+            return url.getOriginalUrl();
         }
         throw new UrlShortenerException("No valid URL not found, please verify the link.");
     }
 
-    private void incrementUrlCounter(String shortenUrl) {
-        // ToDo: Complete this function
+    private void incrementUrlCounter(Url url) {
+        url.setClickCount(url.getClickCount() + 1);
     }
 
     private String generateShortenUrl(Long urlId) {

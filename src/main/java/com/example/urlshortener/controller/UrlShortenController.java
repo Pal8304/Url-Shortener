@@ -23,7 +23,7 @@ public class UrlShortenController {
 
     @GetMapping("/{shortenedUrl}")
     public RedirectView redirectToOriginalUrl(@PathVariable String shortenedUrl) throws UrlShortenerException {
-        String originalUrl = urlShortenService.fetchOriginalString(shortenedUrl);
+        String originalUrl = urlShortenService.fetchOriginalUrl(shortenedUrl);
         log.info("Original Url {} from Shorten Url {}", originalUrl, shortenedUrl);
 
         return new RedirectView(originalUrl);

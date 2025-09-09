@@ -7,7 +7,9 @@ import org.hibernate.validator.constraints.URL;
 import java.time.LocalDateTime;
 
 @Entity
-@Table(name = "urls")
+@Table(name = "urls", indexes = {
+        @Index(name = "idx_short_url", columnList = "shortened_url"),
+})
 @Data
 @NoArgsConstructor
 @AllArgsConstructor
