@@ -1,6 +1,6 @@
 package com.example.urlshortener.redis;
 
-import com.example.urlshortener.exception.CacheException;
+import com.example.urlshortener.entity.Url;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
@@ -12,6 +12,11 @@ public class UrlCacheService {
 
     private final RedisTemplate<String, Object> redisTemplate;
 
+    @Autowired
+    public UrlCacheService(RedisTemplate<String, Object> redisTemplate) {
+        this.redisTemplate = redisTemplate;
+    }
+
     private final String MAPPER_CACHE_PREFIX = "url:";
     private final String MAX_CLICK_COUNT_KEY = "max_click_count";
 
@@ -21,37 +26,26 @@ public class UrlCacheService {
      * We have 2 caches one for top X most clicked urls and other for shortUrl to { OriginalUrl, clickCount}
      */
 
-    @Autowired
-    public UrlCacheService(RedisTemplate<String, Object> redisTemplate) {
-        this.redisTemplate = redisTemplate;
-    }
+    private void cacheUrl(String shortUrl, String originalUrl, Long clickCount) {
+        String cacheKey = MAPPER_CACHE_PREFIX + shortUrl;
 
-    public void cacheUrl(String shortUrl, String originalUrl, Long clickCount) throws CacheException {
-        try {
-            String cacheKey = MAPPER_CACHE_PREFIX + shortUrl;
+        Long cachedUrlCount = redisTemplate.opsForZSet().count(MAX_CLICK_COUNT_KEY, Double.MIN_VALUE, Double.MAX_VALUE);
+        if(cachedUrlCount != null && cachedUrlCount < MAX_CACHED_URLS) {
+            redisTemplate.opsForZSet().add(MAX_CLICK_COUNT_KEY, shortUrl, clickCount);
             redisTemplate.opsForValue().set(cacheKey, new CachedUrl(originalUrl, clickCount));
-            redisTemplate.opsForZSet().add(shortUrl, originalUrl, clickCount);
-        } catch (Exception e) {
-            throw new CacheException("Error while adding to mapper cache");
         }
     }
 
-    public void evictUrl(String shortUrl) {
-        try {
-            String cacheKey = MAPPER_CACHE_PREFIX + shortUrl;
-            redisTemplate.delete(cacheKey);
-        } catch (Exception e) {
-            throw new CacheException("Error occurred while evicting from cache");
-        }
+    private void cacheUrl(Url urlToCache) {
+        cacheUrl(urlToCache.getShortUrl(), urlToCache.getOriginalUrl(), urlToCache.getClickCount());
     }
 
     private String getCachedOriginalUrl(String shortUrl) {
         String cacheKey = MAPPER_CACHE_PREFIX + shortUrl;
-        Object cachedUrl = redisTemplate.opsForValue().get(cacheKey);
-        if (cachedUrl instanceof CachedUrl) {
-            return ((CachedUrl) cachedUrl).getOriginalUrl();
+        Object cacheValue = redisTemplate.opsForValue().get(cacheKey);
+        if(cacheValue instanceof CachedUrl) {
+            return ((CachedUrl) cacheValue).getOriginalUrl();
         }
         return null;
     }
-
 }
