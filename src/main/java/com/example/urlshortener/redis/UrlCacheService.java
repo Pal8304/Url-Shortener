@@ -1,51 +1,43 @@
 package com.example.urlshortener.redis;
 
 import com.example.urlshortener.entity.Url;
+import com.example.urlshortener.exception.CacheException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.redis.core.RedisTemplate;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
+
+import java.util.concurrent.TimeUnit;
 
 @Slf4j
 @Service
 public class UrlCacheService {
 
-    private final RedisTemplate<String, Object> redisTemplate;
+    private final RedisTemplate<String, String> redisTemplate;
+    private final Long TIME_OUT = 60L;
 
     @Autowired
-    public UrlCacheService(RedisTemplate<String, Object> redisTemplate) {
+    public UrlCacheService(RedisTemplate<String, String> redisTemplate) {
         this.redisTemplate = redisTemplate;
     }
 
-    private final String MAPPER_CACHE_PREFIX = "url:";
-    private final String MAX_CLICK_COUNT_KEY = "max_click_count";
-
-    private final Long MAX_CACHED_URLS = 100L;
-
-    /**
-     * We have 2 caches one for top X most clicked urls and other for shortUrl to { OriginalUrl, clickCount}
-     */
-
-    private void cacheUrl(String shortUrl, String originalUrl, Long clickCount) {
-        String cacheKey = MAPPER_CACHE_PREFIX + shortUrl;
-
-        Long cachedUrlCount = redisTemplate.opsForZSet().count(MAX_CLICK_COUNT_KEY, Double.MIN_VALUE, Double.MAX_VALUE);
-        if(cachedUrlCount != null && cachedUrlCount < MAX_CACHED_URLS) {
-            redisTemplate.opsForZSet().add(MAX_CLICK_COUNT_KEY, shortUrl, clickCount);
-            redisTemplate.opsForValue().set(cacheKey, new CachedUrl(originalUrl, clickCount));
+    public void cacheUrl(Url url) {
+        try{
+            redisTemplate.opsForValue().set(url.getShortUrl(), url.getOriginalUrl(), TIME_OUT, TimeUnit.SECONDS);
+            log.info("Cached data for url: {}", url.getOriginalUrl());
+        } catch (Exception e){
+            throw new CacheException("Error while caching url: " + url.getOriginalUrl(), e);
         }
     }
 
-    private void cacheUrl(Url urlToCache) {
-        cacheUrl(urlToCache.getShortUrl(), urlToCache.getOriginalUrl(), urlToCache.getClickCount());
-    }
-
-    private String getCachedOriginalUrl(String shortUrl) {
-        String cacheKey = MAPPER_CACHE_PREFIX + shortUrl;
-        Object cacheValue = redisTemplate.opsForValue().get(cacheKey);
-        if(cacheValue instanceof CachedUrl) {
-            return ((CachedUrl) cacheValue).getOriginalUrl();
+    public String getCachedUrl(String shortUrl){
+        String originalCachedUrl = redisTemplate.opsForValue().get(shortUrl);
+        if(!StringUtils.hasLength(originalCachedUrl)) {
+            log.info("Cache hit for {}", shortUrl);
+            return originalCachedUrl;
         }
+        log.info("Cache miss for {}", shortUrl);
         return null;
     }
 }

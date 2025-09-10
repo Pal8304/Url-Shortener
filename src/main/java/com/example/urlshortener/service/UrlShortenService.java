@@ -10,6 +10,7 @@ import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
+import org.springframework.util.StringUtils;
 
 import java.util.Optional;
 
@@ -31,6 +32,12 @@ public class UrlShortenService {
             throw new InvalidUrlException("URL shouldn't be empty");
         }
 
+        // Checks if a duplicate originalUrl is asked to shorten
+        Optional<Url> urlToCheck = urlRepository.findByOriginalUrl(originalUrl);
+        if(urlToCheck.isPresent()){
+            return new ShortenResponse(urlToCheck.get().getShortUrl(), originalUrl);
+        }
+
         try {
             Url url = new Url(originalUrl);
             url = urlRepository.save(url);
@@ -41,6 +48,7 @@ public class UrlShortenService {
             log.info("Shortened Url {} for Original Url {}", shortenedUrl, originalUrl);
 
             url.setShortUrl(shortenedUrl);
+            urlCacheService.cacheUrl(url);
             urlRepository.save(url);
 
             return new ShortenResponse(shortenedUrl, originalUrl);
@@ -50,6 +58,12 @@ public class UrlShortenService {
     }
 
     public String fetchOriginalUrl(String shortenUrl) throws UrlShortenerException {
+
+        String cachedOriginalUrl = urlCacheService.getCachedUrl(shortenUrl);
+        if(StringUtils.hasLength(cachedOriginalUrl)) {
+            return cachedOriginalUrl;
+        }
+
         Optional<Url> optionalUrl = urlRepository.findByShortUrl(shortenUrl);
         if (optionalUrl.isPresent() && !optionalUrl.get().getOriginalUrl().isBlank()) {
             Url url = optionalUrl.get();

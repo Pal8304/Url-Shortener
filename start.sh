@@ -7,11 +7,15 @@ NC='\033[0m'
 
 # Start PostgresQL if not running
 if ! brew services list | grep postgresql@15 | grep started > /dev/null; then
-  echo -e "${BLUE}Starting PostgreSQL...${NC}"
+  echo -e "${BLUE}Starting PostgresQL...${NC}"
   brew services start postgresql@15
 else
-  echo -e "${GREEN}PostgreSQL already running${NC}"
+  echo -e "${GREEN}PostgresQL already running${NC}"
 fi
+
+#Clear redis
+redis-cli FLUSHALL > /dev/null;
+echo -e "${BLUE}Cleared redis cache"
 
 # Start Redis if not running
 if ! brew services list | grep redis | grep started > /dev/null; then
