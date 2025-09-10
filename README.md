@@ -9,3 +9,4 @@ Questions I have right now:
 5. Handle redirect ( like we are needing https or http before url to redirect )
 6. Find better hash function 
 7. Implement Redis 
+8. Figure out if need to caches, one for top and other for mapping short to CachedUrl

@@ -4,6 +4,7 @@ import com.example.urlshortener.entity.ShortenResponse;
 import com.example.urlshortener.entity.Url;
 import com.example.urlshortener.exception.InvalidUrlException;
 import com.example.urlshortener.exception.UrlShortenerException;
+import com.example.urlshortener.redis.UrlCacheService;
 import com.example.urlshortener.repository.UrlRepository;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
@@ -16,15 +17,17 @@ import java.util.Optional;
 @Slf4j
 public class UrlShortenService {
     private final UrlRepository urlRepository;
+    private final UrlCacheService urlCacheService;
 
     @Autowired
-    public UrlShortenService(UrlRepository urlRepository) {
+    public UrlShortenService(UrlRepository urlRepository, UrlCacheService urlCacheService) {
         this.urlRepository = urlRepository;
+        this.urlCacheService = urlCacheService;
     }
 
     public ShortenResponse saveUrl(String originalUrl) {
 
-        if(originalUrl.isBlank()){
+        if (originalUrl.isBlank()) {
             throw new InvalidUrlException("URL shouldn't be empty");
         }
 
