@@ -7,6 +7,9 @@ Questions I have right now:
 3. How are we generating shortened URL, current idea: id in base 65 + salting
 4. What if multiple users provide the same url to shorten, would be ok to use a previously generated shortened url for that specific url 
 5. Handle redirect ( like we are needing https or http before url to redirect )
-6. Find better hash function 
+6. Find better hash function, we have three options now
+   1. (Ax + B) % (62^k)
+   2. Fiestal 
+   3. Format Preserving Encryption ( FPE )
 7. Implement Redis 
 8. Figure out if need to caches, one for top and other for mapping short to CachedUrl

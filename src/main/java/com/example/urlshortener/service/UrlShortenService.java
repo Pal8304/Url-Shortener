@@ -6,12 +6,14 @@ import com.example.urlshortener.exception.InvalidUrlException;
 import com.example.urlshortener.exception.UrlShortenerException;
 import com.example.urlshortener.redis.UrlCacheService;
 import com.example.urlshortener.repository.UrlRepository;
+import com.privacylogistics.FF3Cipher;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
+import java.security.SecureRandom;
 import java.util.Optional;
 
 @Service
@@ -19,6 +21,9 @@ import java.util.Optional;
 public class UrlShortenService {
     private final UrlRepository urlRepository;
     private final UrlCacheService urlCacheService;
+
+    private final Integer MAX_URL_LENGTH = 7;
+    private final String BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     @Autowired
     public UrlShortenService(UrlRepository urlRepository, UrlCacheService urlCacheService) {
@@ -34,7 +39,7 @@ public class UrlShortenService {
 
         // Checks if a duplicate originalUrl is asked to shorten
         Optional<Url> urlToCheck = urlRepository.findByOriginalUrl(originalUrl);
-        if(urlToCheck.isPresent()){
+        if (urlToCheck.isPresent()) {
             return new ShortenResponse(urlToCheck.get().getShortUrl(), originalUrl);
         }
 
@@ -47,11 +52,15 @@ public class UrlShortenService {
 
             log.info("Shortened Url {} for Original Url {}", shortenedUrl, originalUrl);
 
-            url.setShortUrl(shortenedUrl);
+            String encodedShortUrl = mystoEncoding(shortenedUrl);
+
+            log.info("Encoded Url {} for Original Url {}", encodedShortUrl, originalUrl);
+
+            url.setShortUrl(encodedShortUrl);
             urlCacheService.cacheUrl(url);
             urlRepository.save(url);
 
-            return new ShortenResponse(shortenedUrl, originalUrl);
+            return new ShortenResponse(encodedShortUrl, originalUrl);
         } catch (ConstraintViolationException e) {
             throw new InvalidUrlException("Provided Url is invalid");
         }
@@ -60,7 +69,7 @@ public class UrlShortenService {
     public String fetchOriginalUrl(String shortenUrl) throws UrlShortenerException {
 
         String cachedOriginalUrl = urlCacheService.getCachedUrl(shortenUrl);
-        if(StringUtils.hasLength(cachedOriginalUrl)) {
+        if (StringUtils.hasLength(cachedOriginalUrl)) {
             return cachedOriginalUrl;
         }
 
@@ -84,8 +93,6 @@ public class UrlShortenService {
     }
 
     private String convertToBase62(Long urlId) {
-        final String BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
-
         StringBuilder base62 = new StringBuilder();
         Long value = urlId;
         while (value > 0) {
@@ -93,12 +100,27 @@ public class UrlShortenService {
             value /= 62;
         }
 
-        while (base62.length() < 7) {
+        while (base62.length() < MAX_URL_LENGTH) {
             base62.append(BASE62_CHARS.charAt(0));
         }
 
         log.info("For id {}, base62 is {}", urlId, base62);
 
         return base62.reverse().toString();
+    }
+
+    private String mystoEncoding(String shortUrl) {
+        try {
+            SecureRandom rnd = new SecureRandom();
+            byte[] key = new byte[16];
+            rnd.nextBytes(key);
+            byte[] tweak = new byte[7];
+            rnd.nextBytes(tweak);
+            FF3Cipher ff3Cipher = new FF3Cipher(key, tweak, BASE62_CHARS);
+
+            return ff3Cipher.encrypt(shortUrl, tweak);
+        } catch (Exception e) {
+            throw new UrlShortenerException("Error while encoding url", e);
+        }
     }
 }
