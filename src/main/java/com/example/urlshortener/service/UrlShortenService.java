@@ -13,7 +13,6 @@ import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.security.SecureRandom;
 import java.util.Optional;
 
 @Service
@@ -21,14 +20,16 @@ import java.util.Optional;
 public class UrlShortenService {
     private final UrlRepository urlRepository;
     private final UrlCacheService urlCacheService;
+    private final FF3Cipher ff3Cipher;
 
     private final Integer MAX_URL_LENGTH = 7;
     private final String BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
 
     @Autowired
-    public UrlShortenService(UrlRepository urlRepository, UrlCacheService urlCacheService) {
+    public UrlShortenService(UrlRepository urlRepository, UrlCacheService urlCacheService, FF3Cipher ff3Cipher) {
         this.urlRepository = urlRepository;
         this.urlCacheService = urlCacheService;
+        this.ff3Cipher = ff3Cipher;
     }
 
     public ShortenResponse saveUrl(String originalUrl) {
@@ -48,11 +49,11 @@ public class UrlShortenService {
             url = urlRepository.save(url);
 
             Long urlId = url.getId();
-            String shortenedUrl = generateShortenUrl(urlId);
+            String base64Url = generateShortenUrl(urlId);
 
-            log.info("Shortened Url {} for Original Url {}", shortenedUrl, originalUrl);
+            log.info("Shortened Url {} for Original Url {}", base64Url, originalUrl);
 
-            String encodedShortUrl = mystoEncoding(shortenedUrl);
+            String encodedShortUrl = ff3Cipher.encrypt(base64Url);
 
             log.info("Encoded Url {} for Original Url {}", encodedShortUrl, originalUrl);
 
@@ -63,6 +64,9 @@ public class UrlShortenService {
             return new ShortenResponse(encodedShortUrl, originalUrl);
         } catch (ConstraintViolationException e) {
             throw new InvalidUrlException("Provided Url is invalid");
+        } catch (Exception e) {
+            log.error("Failed to create short url for {}, reason: {}", originalUrl, e.getMessage());
+            throw new UrlShortenerException("Internal error while encoding url", e);
         }
     }
 
@@ -107,20 +111,5 @@ public class UrlShortenService {
         log.info("For id {}, base62 is {}", urlId, base62);
 
         return base62.reverse().toString();
-    }
-
-    private String mystoEncoding(String shortUrl) {
-        try {
-            SecureRandom rnd = new SecureRandom();
-            byte[] key = new byte[16];
-            rnd.nextBytes(key);
-            byte[] tweak = new byte[7];
-            rnd.nextBytes(tweak);
-            FF3Cipher ff3Cipher = new FF3Cipher(key, tweak, BASE62_CHARS);
-
-            return ff3Cipher.encrypt(shortUrl, tweak);
-        } catch (Exception e) {
-            throw new UrlShortenerException("Error while encoding url", e);
-        }
     }
 }

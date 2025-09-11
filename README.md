@@ -10,6 +10,6 @@ Questions I have right now:
 6. Find better hash function, we have three options now
    1. (Ax + B) % (62^k)
    2. Fiestal 
-   3. Format Preserving Encryption ( FPE )
+   3. Format Preserving Encryption ( FPE ), should I create a service or a config for FPE ( Also decide between https://github.com/mysto/java-fpe and https://github.com/bcgit/bc-java)
 7. Implement Redis 
 8. Figure out if need to caches, one for top and other for mapping short to CachedUrl
