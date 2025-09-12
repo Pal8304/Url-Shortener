@@ -9,6 +9,7 @@ import java.time.LocalDateTime;
 @Entity
 @Table(name = "urls", indexes = {
         @Index(name = "idx_short_url", columnList = "shortened_url"),
+        @Index(name = "idx_click_count", columnList = "click_count DESC")
 })
 @Data
 @NoArgsConstructor

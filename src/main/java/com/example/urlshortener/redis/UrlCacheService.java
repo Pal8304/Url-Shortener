@@ -1,43 +1,59 @@
 package com.example.urlshortener.redis;
 
 import com.example.urlshortener.entity.Url;
-import com.example.urlshortener.exception.CacheException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
-import org.springframework.data.redis.core.RedisTemplate;
+import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
-import java.util.concurrent.TimeUnit;
+import java.util.HashSet;
+import java.util.List;
+import java.util.Set;
+import java.util.stream.Collectors;
 
 @Slf4j
 @Service
 public class UrlCacheService {
 
-    private final RedisTemplate<String, String> redisTemplate;
-    private final Long TIME_OUT = 60L;
+    private final StringRedisTemplate stringRedisTemplate;
+    private static final String CACHE_PREFIX = "shorturl:";
 
     @Autowired
-    public UrlCacheService(RedisTemplate<String, String> redisTemplate) {
-        this.redisTemplate = redisTemplate;
+    public UrlCacheService(StringRedisTemplate stringRedisTemplate) {
+        this.stringRedisTemplate = stringRedisTemplate;
     }
 
-    public void cacheUrl(Url url) {
-        try{
-            redisTemplate.opsForValue().set(url.getShortUrl(), url.getOriginalUrl(), TIME_OUT, TimeUnit.SECONDS);
-            log.info("Cached data for url: {}", url.getOriginalUrl());
-        } catch (Exception e){
-            throw new CacheException("Error while caching url: " + url.getOriginalUrl(), e);
-        }
-    }
-
-    public String getCachedUrl(String shortUrl){
-        String originalCachedUrl = redisTemplate.opsForValue().get(shortUrl);
-        if(!StringUtils.hasLength(originalCachedUrl)) {
+    public String getCachedUrl(String shortUrl) {
+        String cacheKey = CACHE_PREFIX + shortUrl;
+        String originalCachedUrl = stringRedisTemplate.opsForValue().get(cacheKey);
+        if (StringUtils.hasLength(originalCachedUrl)) {
             log.info("Cache hit for {}", shortUrl);
             return originalCachedUrl;
         }
         log.info("Cache miss for {}", shortUrl);
         return null;
+    }
+
+    public void updateRedisCache(List<Url> topKUrls) {
+        if (topKUrls == null) return;
+
+        Set<String> keysInCache = stringRedisTemplate.keys(CACHE_PREFIX + "*");
+        Set<String> keysToDelete = new HashSet<>();
+        Set<String> currentKeys = topKUrls.stream().map(url -> CACHE_PREFIX + url.getShortUrl()).collect(Collectors.toSet());
+
+        for (String cacheKey : keysInCache) {
+            if (!currentKeys.contains(cacheKey)) {
+                keysToDelete.add(cacheKey);
+            }
+        }
+
+        stringRedisTemplate.delete(keysToDelete);
+
+        for (Url url : topKUrls) {
+            if (!keysInCache.contains(CACHE_PREFIX + url.getShortUrl())) {
+                stringRedisTemplate.opsForValue().set(CACHE_PREFIX + url.getShortUrl(), url.getOriginalUrl());
+            }
+        }
     }
 }

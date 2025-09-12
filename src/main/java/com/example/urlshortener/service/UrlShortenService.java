@@ -58,7 +58,6 @@ public class UrlShortenService {
             log.info("Encoded Url {} for Original Url {}", encodedShortUrl, originalUrl);
 
             url.setShortUrl(encodedShortUrl);
-            urlCacheService.cacheUrl(url);
             urlRepository.save(url);
 
             return new ShortenResponse(encodedShortUrl, originalUrl);
