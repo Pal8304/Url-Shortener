@@ -1,0 +1,57 @@
+services:
+  postgres:
+    image: postgres:15
+    environment:
+      POSTGRES_DB: urlshortener
+      POSTGRES_USER: urluser
+      POSTGRES_PASSWORD: urlpassword
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    healthcheck:
+      test: [ "CMD", "pg_isready", "-U", "${POSTGRES_USER:-urluser}" ]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  redis:
+    image: redis:7-alpine
+    container_name: urlshortener_redis
+    ports:
+      - "6379:6379"
+    # If you want persistence / password, add settings below:
+    # command: ["redis-server", "--requirepass", "${REDIS_PASSWORD}"]
+    # volumes:
+    #   - redisdata:/data
+
+  app:
+    build: .
+    depends_on:
+      postgres:
+        condition: service_healthy
+      redis:
+        condition: service_started
+    container_name: urlshortener_app
+    ports:
+      - "8080:8080"
+    environment:
+      SPRING_APPLICATION_NAME: ${SPRING_APPLICATION_NAME:-"URL Shortener"}
+      SPRING_DATASOURCE_URL: ${SPRING_DATASOURCE_URL:-jdbc:postgresql://postgres:5432/${POSTGRES_DB:-urlshortener}}
+      SPRING_DATASOURCE_USERNAME: ${SPRING_DATASOURCE_USERNAME:-${POSTGRES_USER:-urluser}}
+      SPRING_DATASOURCE_PASSWORD: ${SPRING_DATASOURCE_PASSWORD:-${POSTGRES_PASSWORD:-urlpassword}}
+
+      SPRING_JPA_HIBERNATE_DDL_AUTO: ${SPRING_JPA_HIBERNATE_DDL_AUTO:-create-drop}
+      SPRING_JPA_SHOW_SQL: ${SPRING_JPA_SHOW_SQL:-true}
+      SPRING_JPA_FORMAT_SQL: ${SPRING_JPA_FORMAT_SQL:-true}
+
+      SPRING_REDIS_HOST: ${SPRING_REDIS_HOST:-redis}
+      SPRING_REDIS_PORT: ${SPRING_REDIS_PORT:-6379}
+      SPRING_REDIS_TIMEOUT: ${SPRING_REDIS_TIMEOUT:-60000ms}
+      SPRING_REDIS_DATABASE: ${SPRING_REDIS_DATABASE:-0}
+
+      SERVER_PORT: ${SERVER_PORT:-8080}
+
+volumes:
+  postgres_data:
+  # redisdata: # optionally if you enable persistence for Redis
