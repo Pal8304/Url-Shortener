@@ -58,6 +58,11 @@ services:
 
       SERVER_PORT: ${SERVER_PORT:-8080}
 
+      # Fix for Docker metrics issue
+      MANAGEMENT_METRICS_BINDERS_SYSTEM_ENABLED: false
+      MANAGEMENT_METRICS_BINDERS_PROCESSOR_ENABLED: false
+      MANAGEMENT_METRICS_ENABLE_PROCESSOR: false
+
 networks:
   urlshortener-network:
     driver: bridge
