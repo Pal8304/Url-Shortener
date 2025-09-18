@@ -1,7 +1,7 @@
 package com.example.urlshortener.controller;
 
-import com.example.urlshortener.entity.ShortenRequest;
-import com.example.urlshortener.entity.ShortenResponse;
+import com.example.urlshortener.dto.ShortenRequest;
+import com.example.urlshortener.dto.ShortenResponse;
 import com.example.urlshortener.exception.InvalidUrlException;
 import com.example.urlshortener.exception.UrlShortenerException;
 import com.example.urlshortener.service.UrlShortenService;

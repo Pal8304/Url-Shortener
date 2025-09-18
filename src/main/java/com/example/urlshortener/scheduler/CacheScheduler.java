@@ -1,8 +1,9 @@
-package com.example.urlshortener.redis;
+package com.example.urlshortener.scheduler;
 
 import com.example.urlshortener.entity.Url;
 import com.example.urlshortener.exception.CacheException;
 import com.example.urlshortener.repository.UrlRepository;
+import com.example.urlshortener.service.UrlCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.PageRequest;
@@ -14,14 +15,14 @@ import java.util.List;
 
 @Slf4j
 @Component
-public class CacheSchedular {
+public class CacheScheduler {
 
     private final UrlRepository urlRepository;
     private final UrlCacheService urlCacheService;
     private final Integer topK = 10;
 
     @Autowired
-    public CacheSchedular(UrlRepository urlRepository, UrlCacheService urlCacheService) {
+    public CacheScheduler(UrlRepository urlRepository, UrlCacheService urlCacheService) {
         this.urlRepository = urlRepository;
         this.urlCacheService = urlCacheService;
     }
