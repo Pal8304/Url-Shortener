@@ -3,6 +3,7 @@ package com.example.urlshortener.service;
 import com.example.urlshortener.entity.Url;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.redis.core.StringRedisTemplate;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
@@ -17,7 +18,9 @@ import java.util.stream.Collectors;
 public class UrlCacheService {
 
     private final StringRedisTemplate stringRedisTemplate;
-    private static final String CACHE_PREFIX = "shorturl:";
+
+    @Value("${url.cache.prefix}")
+    private String CACHE_PREFIX;
 
     @Autowired
     public UrlCacheService(StringRedisTemplate stringRedisTemplate) {

@@ -6,6 +6,7 @@ import com.example.urlshortener.repository.UrlRepository;
 import com.example.urlshortener.service.UrlCacheService;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.data.domain.PageRequest;
 import org.springframework.data.domain.Sort;
 import org.springframework.scheduling.annotation.Scheduled;
@@ -19,7 +20,9 @@ public class CacheScheduler {
 
     private final UrlRepository urlRepository;
     private final UrlCacheService urlCacheService;
-    private final Integer topK = 10;
+
+    @Value("${url.cache.tok-k}")
+    private Integer topK;
 
     @Autowired
     public CacheScheduler(UrlRepository urlRepository, UrlCacheService urlCacheService) {

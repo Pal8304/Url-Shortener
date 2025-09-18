@@ -9,7 +9,9 @@ import java.util.Base64;
 
 @Configuration
 public class FPEConfig {
-    private static final String ALPHABET = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+
+    @Value("${url.base62-chars}")
+    private String ALPHABET;
 
     @Value("${fpe.key-base64}")
     private String keyBase64;

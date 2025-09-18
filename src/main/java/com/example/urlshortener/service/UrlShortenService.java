@@ -9,6 +9,7 @@ import com.privacylogistics.FF3Cipher;
 import jakarta.validation.ConstraintViolationException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
+import org.springframework.beans.factory.annotation.Value;
 import org.springframework.stereotype.Service;
 import org.springframework.util.StringUtils;
 
@@ -24,8 +25,10 @@ public class UrlShortenService {
     private final ClickCounterService clickCounterService;
     private final FF3Cipher ff3Cipher;
 
-    private final Integer MAX_URL_LENGTH = 7;
-    private final String BASE62_CHARS = "0123456789ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz";
+    @Value("${url.max-url-length}")
+    private Integer MAX_URL_LENGTH;
+    @Value("${url.base62-chars}")
+    private String BASE62_CHARS;
 
     @Autowired
     public UrlShortenService(UrlRepository urlRepository, UrlCacheService urlCacheService, ClickCounterService clickCounterService, FF3Cipher ff3Cipher) {
