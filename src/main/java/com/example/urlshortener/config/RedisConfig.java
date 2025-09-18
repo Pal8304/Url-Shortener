@@ -1,4 +1,4 @@
-package com.example.urlshortener.redis;
+package com.example.urlshortener.config;
 
 import org.springframework.context.annotation.Bean;
 import org.springframework.context.annotation.Configuration;

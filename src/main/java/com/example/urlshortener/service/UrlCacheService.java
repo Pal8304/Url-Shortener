@@ -1,4 +1,4 @@
-package com.example.urlshortener.redis;
+package com.example.urlshortener.service;
 
 import com.example.urlshortener.entity.Url;
 import lombok.extern.slf4j.Slf4j;

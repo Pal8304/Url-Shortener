@@ -1,4 +1,4 @@
-package com.example.urlshortener.fpe;
+package com.example.urlshortener.config;
 
 import com.privacylogistics.FF3Cipher;
 import org.springframework.beans.factory.annotation.Value;
