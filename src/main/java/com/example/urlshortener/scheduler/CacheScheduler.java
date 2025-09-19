@@ -30,7 +30,7 @@ public class CacheScheduler {
         this.urlCacheService = urlCacheService;
     }
 
-    @Scheduled(fixedDelay = 60000)
+    @Scheduled(fixedDelayString = "${url.cache.refresh-time}")
     public void refreshCachedUrls() {
         try {
             List<Url> topKUrls = urlRepository.findAll(
@@ -39,8 +39,8 @@ public class CacheScheduler {
 
             urlCacheService.updateRedisCache(topKUrls);
             log.info("Finished cache refresh: topK={}", topK);
-        } catch (Exception ex) {
-            log.error("Cache refresh failed", ex);
+        } catch (Exception e) {
+            log.error("Cache refresh failed", e);
             throw new CacheException("Failed to refresh cache");
         }
     }

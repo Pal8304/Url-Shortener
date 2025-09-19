@@ -28,6 +28,8 @@ git clone https://github.com/Pal8304/Url-Shortener.git
 
 - [x] No hash collision url generation 
 - [ ] Custom URLs ( User defined short urls )
+- [ ] Generate keys on runtime so now predictability
+- [ ] Add tests 
 
 ## API Endpoints 
 

@@ -1,0 +1,39 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>404 — Not Found</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+               background:#fff; color:#111; display:flex; align-items:center; justify-content:center; height:100vh; margin:0; }
+        .box { max-width:760px; padding:28px; border-radius:10px; box-shadow:0 8px 30px rgba(2,6,23,0.08); }
+        h1 { font-size:38px; margin:0 0 6px; }
+        p { margin:6px 0 18px; color:#444; }
+        a.btn { display:inline-block; margin-right:8px; padding:10px 14px; border-radius:6px; text-decoration:none; background:#111827; color:white; }
+        code { background:#f3f4f6; padding:6px 8px; border-radius:6px; }
+    </style>
+</head>
+<body>
+<div class="box">
+    <h1>404 — Not Found</h1>
+    <p th:text="${message} ?: 'The requested endpoint was not found on this server.'">
+        The requested endpoint was not found on this server.
+    </p>
+
+    <p>
+        <strong>Path:</strong> <code th:text="${path} ?: '-'">/unknown/path</code>
+        &nbsp;&nbsp;&nbsp;
+        <strong>Time:</strong> <small th:text="${timestamp}">2025-09-19T12:25:18Z</small>
+    </p>
+
+    <div style="margin-top:16px;">
+        <a th:href="@{/swagger-ui/index.html}" class="btn">Swagger UI</a>
+    </div>
+
+    <p style="margin-top:14px; color:#666">
+        Tip: check your request path & HTTP method. If this is an API client, confirm `Content-Type` and versioning.
+    </p>
+</div>
+</body>
+</html>

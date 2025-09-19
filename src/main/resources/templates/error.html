@@ -1,0 +1,59 @@
+<!DOCTYPE html>
+<html xmlns:th="http://www.thymeleaf.org">
+<head>
+    <meta charset="utf-8"/>
+    <meta name="viewport" content="width=device-width,initial-scale=1"/>
+    <title>Server Error — API</title>
+    <style>
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial;
+               background:#f6f8fa; color:#111; margin:0; padding:40px; }
+        .card { max-width:900px; margin:30px auto; background:white; border-radius:8px;
+                box-shadow:0 6px 20px rgba(0,0,0,0.06); padding:28px; }
+        h1 { margin:0 0 8px; font-size:26px; }
+        p.meta { color:#555; margin:8px 0 16px; }
+        .fields { display:flex; gap:18px; flex-wrap:wrap; margin-bottom:18px; }
+        .field { background:#f3f6f8; padding:10px 14px; border-radius:6px; min-width:180px; }
+        a.btn { display:inline-block; margin-right:10px; padding:10px 14px; border-radius:6px;
+                text-decoration:none; background:#2563eb; color:white; }
+        a.link { color:#2563eb; text-decoration:none; }
+        pre { background:#0f1724; color:#dbeafe; padding:12px; border-radius:6px; overflow:auto; }
+        small { color:#666; }
+    </style>
+</head>
+<body>
+<div class="card">
+    <h1 th:text="${error} ?: 'Server Error'">Server Error</h1>
+    <p class="meta">
+        <small th:text="${timestamp}">2025-09-19T12:25:18Z</small>
+        &nbsp;·&nbsp;
+        <strong th:text="${status}">500</strong>
+        &nbsp;·&nbsp;
+        <span th:text="${path} ?: '-'">/example/path</span>
+    </p>
+
+    <div class="fields">
+        <div class="field">
+            <strong>Message</strong>
+            <div th:text="${message} ?: 'No message available'">Something went wrong</div>
+        </div>
+        <div class="field">
+            <strong>Exception</strong>
+            <div th:text="${exception} ?: '-'">org.example.Exception</div>
+        </div>
+    </div>
+
+    <div style="margin-bottom:16px;">
+        <a th:href="@{/swagger-ui/index.html}" class="btn">Open API / Swagger UI</a>
+    </div>
+
+    <details>
+        <summary style="cursor:pointer">Raw error attributes</summary>
+        <pre th:text="${#objects.toString(errorAttributes)}">error attributes JSON</pre>
+    </details>
+
+    <p style="margin-top:18px">
+        <small>If this is a production system, avoid leaking stack traces to clients. Use these pages mainly for developer-facing deployments.</small>
+    </p>
+</div>
+</body>
+</html>
