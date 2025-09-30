@@ -1,10 +1,14 @@
-HELP.md
-target/
-.mvn/wrapper/maven-wrapper.jar
-!**/src/main/**/target/
-!**/src/test/**/target/
+# ------------------------------
+# Backend (Spring Boot / Maven)
+# ------------------------------
+/backend/target/
+/backend/.mvn/wrapper/maven-wrapper.jar
+/backend/.idea/
+/backend/.vscode/
 
-### STS ###
+# If you keep wrapper jars for reproducible builds, remove the line above.
+
+### STS / Eclipse ###
 .apt_generated
 .classpath
 .factorypath
@@ -25,9 +29,36 @@ target/
 /dist/
 /nbdist/
 /.nb-gradle/
-build/
-!**/src/main/**/build/
-!**/src/test/**/build/
+/build/
 
-### VS Code ###
-.vscode/
+# ------------------------------
+# Frontend (React/Vite/Next etc.)
+# ------------------------------
+/frontend/node_modules/
+/frontend/dist/
+/frontend/build/
+/frontend/.env
+/frontend/.env.local
+/frontend/.next/           # for Next.js
+/frontend/out/             # for Next.js static export
+/frontend/.parcel-cache/   # for Parcel etc.
+
+# ------------------------------
+# Logs / OS / Misc
+# ------------------------------
+*.log
+*.log.*
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+pnpm-debug.log*
+
+# Mac / Linux / Windows system files
+.DS_Store
+Thumbs.db
+ehthumbs.db
+
+# ------------------------------
+# Other tools
+# ------------------------------
+/coverage/
