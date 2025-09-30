@@ -1,6 +1,8 @@
 package com.example.urlshortener.service;
 
+import com.example.urlshortener.dto.ShortenResponse;
 import com.example.urlshortener.entity.Url;
+import com.example.urlshortener.exception.CacheException;
 import lombok.extern.slf4j.Slf4j;
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.beans.factory.annotation.Value;
@@ -57,6 +59,17 @@ public class UrlCacheService {
             if (!keysInCache.contains(CACHE_PREFIX + url.getShortUrl())) {
                 stringRedisTemplate.opsForValue().set(CACHE_PREFIX + url.getShortUrl(), url.getOriginalUrl());
             }
+        }
+    }
+
+    public List<ShortenResponse> getAllCachedEntries() {
+        try {
+            // ToDo: May be create a separate DTO or entity for it as well
+            Set<String> keysInCache = stringRedisTemplate.keys(CACHE_PREFIX + "*");
+            log.info("Fetching ");
+            return keysInCache.stream().map(key -> new ShortenResponse(key, stringRedisTemplate.opsForValue().get(key))).collect(Collectors.toList());
+        } catch (Exception e) {
+            throw new CacheException("Error while retrieving cache entries", e);
         }
     }
 }
